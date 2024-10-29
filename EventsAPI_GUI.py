@@ -76,18 +76,18 @@ if __name__ == "__main__":
     events = tk.Tk()
     events.title("EventAPI GUI")
     
-    title_label = tk.Label(events, text="Events that May Affect Our Mission", font=("Arial", 32, "bold"), background="navy", foreground="white", pady=20)
+    title_label = tk.Label(events, text="Upcoming Events that May Affect Traffic", font=("Times New Roman", 32, "bold"), background="Light Slate Gray", foreground="white", pady=20)
     title_label.pack()
 
     width = events.winfo_screenwidth()
     height = events.winfo_screenheight()
     events.geometry(f"{width}x{height}")
-    events.configure(background= "navy")
+    events.configure(background= "Light Slate Gray")
 
-    events_label = tk.Label(events, text="", background="navy", foreground='light green', justify="left", anchor="nw")
+    events_label = tk.Label(events, text="", background="Light Slate Gray", foreground='white', justify="left", anchor="nw", font=("Times New Roman", 10))
     events_label.pack(fill="both", padx=20, pady=20)
     
-    fetch_button = tk.Button(events, text="Click for Events", command=lambda: displayEvents(events_label), background="light green", foreground="navy")
+    fetch_button = tk.Button(events, text="Click for Events", command=lambda: displayEvents(events_label), background="white", foreground="Light Slate Gray")
     fetch_button.pack(pady=20)
 
     events.mainloop()
