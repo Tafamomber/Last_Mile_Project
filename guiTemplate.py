@@ -36,7 +36,7 @@ people_active_button.grid(row=1, column=1, padx=10, pady=10, sticky="nsew", colu
 events_button = tk.Button(frame, text="Events", command=lambda: button_clicked("Events"))
 events_button.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
 
-report_button = tk.Button(frame, text="Leash Report", command=lambda: button_clicked("Leash Report"))
+report_button = tk.Button(frame, text="Leash Report", command=lambda: button_clicked("Crash Report"))
 report_button.grid(row=2, column=2, padx=10, pady=10, sticky="nsew")
 
 # Row 4
