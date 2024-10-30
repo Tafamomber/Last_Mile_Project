@@ -2,7 +2,7 @@
  
 import tkinter as tk
 from tkinter import ttk
-from eventsGUI import EventsFrame
+from EventsAPI_GUI import EventsFrame
 from trafficGUI import TrafficFrame  # Import TrafficFrame from trafficAPI_GUI.py
 import requests
 from datetime import datetime
