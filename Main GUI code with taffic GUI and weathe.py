@@ -3,10 +3,13 @@
 import tkinter as tk
 from tkinter import ttk
 from EventsAPI_GUI import EventsFrame
-from trafficGUI import TrafficFrame  # Import TrafficFrame from trafficAPI_GUI.py
+from trafficAPI_GUI import TrafficFrame  # Import TrafficFrame from
+# trafficAPI_GUI.py
+from CrashReportsAPI import CrashReport 
 import requests
 from datetime import datetime
  
+
 class WeatherApp:
     def __init__(self, master):
         self.master = master
@@ -103,8 +106,13 @@ active_users_label.pack(expand=True)
 # Crash Report Frame
 crash_report_frame = ttk.Frame(root, padding="10", relief="solid")
 crash_report_frame.grid(row=1, column=2, sticky="nsew", padx=padding_val, pady=padding_val)
-crash_report_label = ttk.Label(crash_report_frame, text="Crash Report", anchor="center")
-crash_report_label.pack(expand=True)
+
+# Create the header label for the crash report
+crash_report_label = ttk.Label(crash_report_frame, text="Crash Report", anchor="center", font=("Arial", 16, "bold"))
+crash_report_label.pack(side=tk.TOP, pady=5)  # Pack the label first to place it at the top
+
+# Create the CrashReport instance
+crash_report_app = CrashReport(crash_report_frame)
  
 # Bottom section layout (Weather)
 weather_frame = ttk.Frame(root, padding="10", relief="solid")
