@@ -1,56 +1,77 @@
-import tkinter as tk
 import http.client
 import json
+import tkinter as tk
 
+# API Key for TomTom
 api_key = 'vIWAkgxeRxGm3GsoHEdyv95p4Tf1qkc5'
-origin = '39.1517,-84.4675'
 
-def get_traffic_info(origin, destination):
-    conn = http.client.HTTPSConnection("api.tomtom.com")
-    url = f"/routing/1/calculateRoute/{origin}:{destination}/json?key={api_key}&routeType=fastest"
-    conn.request("GET", url)
-    response = conn.getresponse()
-    
-    if response.status == 200:
-        data = response.read()
-        return json.loads(data)
-    else:
-        return None
+# List of major highways with coordinates (latitude, longitude) in Cincinnati, Newport, and Northern Kentucky
+highways = {
+    'I-71': '39.1072,-84.5045',
+    'I-74': '39.1310,-84.5477',
+    'I-75': '39.0736,-84.5323',
+    'I-275': '39.0663,-84.3748',
+    'US-50': '39.0920,-84.5200',
+    'OH-126': '39.2290,-84.3950',
+    'I-471': '39.0911,-84.4960',  # Connects Cincinnati to Newport
+    'KY-8': '39.0920,-84.4950',   # Runs along the Ohio River in Northern Kentucky
+    'KY-18': '39.0462,-84.6632',  # Leads towards CVG Airport
+    'KY-237': '39.0481,-84.6700'  # Leads towards CVG Airport
+}
 
-def get_traffic():
-    destination = entry.get().strip()  # Get the destination from the input field
-    traffic_info = get_traffic_info(origin, destination)
-    
-    if traffic_info:
-        result = "Current Traffic Information for Cincinnati:\n"
-        for route in traffic_info.get('routes', []):
-            summary = route.get('summary', {})
-            travel_time = summary.get('travelTimeInSeconds', 0)
-            traffic_delay = summary.get('trafficDelayInSeconds', 0)
-            
-            if traffic_delay > 0:
-                result += f"Traffic is moving slow. Travel time: {travel_time // 60} minutes, Delay: {traffic_delay // 60} minutes.\n"
-            else:
-                result += f"Traffic is moving fast. Travel time: {travel_time // 60} minutes, No delay.\n"
+class TrafficFrame(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.results_text = tk.Text(self, width=60, height=20, wrap='word', font=("Helvetica", 10))
+        self.results_text.tag_configure("highway", font=("Helvetica", 12, "bold"))
+        self.results_text.tag_configure("delay", foreground="red", font=("Helvetica", 10, "bold"))
+        self.results_text.tag_configure("normal", foreground="green", font=("Helvetica", 10, "bold"))
+        self.results_text.tag_configure("error", foreground="orange", font=("Helvetica", 10, "italic"))
+        self.results_text.pack(pady=10)
         
-        result_label.config(text=result)  # Update the label with the result
-    else:
-        result_label.config(text="Error: Failed to retrieve traffic information.")
+        # Refresh button
+        refresh_button = tk.Button(self, text="Refresh Traffic Info", command=self.refresh_traffic_info)
+        refresh_button.pack(pady=5)
 
-root = tk.Tk()
-root.title("Traffic Information")
+        # Initial load of traffic information
+        self.refresh_traffic_info()
 
-label = tk.Label(root, text="Enter the destination coordinates (e.g., 39.2022,-84.3772):")
-label.pack(pady=10)
+    # Function to get traffic flow information
+    def get_traffic_flow(self, point):
+        conn = http.client.HTTPSConnection("api.tomtom.com")
+        url = f"/traffic/services/4/flowSegmentData/absolute/10/json?key={api_key}&point={point}"
+        conn.request("GET", url)
+        response = conn.getresponse()
+        if response.status == 200:
+            data = response.read()
+            return json.loads(data)
+        else:
+            return None
 
-entry = tk.Entry(root, width=50)
-entry.pack(pady=5)
-
-button = tk.Button(root, text="Get Traffic Info", command=get_traffic)
-button.pack(pady=20)
-
-# Label to display the result
-result_label = tk.Label(root, text="", justify="left", anchor="w")
-result_label.pack(pady=10)
-
-root.mainloop()
+    # Function to refresh traffic information for each highway
+    def refresh_traffic_info(self):
+        self.results_text.delete(1.0, tk.END)  # Clear previous results
+        self.results_text.insert(tk.END, "Traffic Information for Major Highways:\n\n")
+        
+        for highway, point in highways.items():
+            traffic_flow = self.get_traffic_flow(point)
+            
+            if traffic_flow:
+                flow_data = traffic_flow.get("flowSegmentData", {})
+                current_speed = flow_data.get("currentSpeed", 0)
+                free_flow_speed = flow_data.get("freeFlowSpeed", 0)
+                delay = current_speed < free_flow_speed
+                
+                # Display formatted information
+                self.results_text.insert(tk.END, f"Highway: {highway}\n", "highway")
+                self.results_text.insert(tk.END, f"  Current Speed: {current_speed} mph\n")
+                self.results_text.insert(tk.END, f"  Free Flow Speed: {free_flow_speed} mph\n")
+                if delay:
+                    self.results_text.insert(tk.END, f"  Status: Delay Detected\n", "delay")
+                else:
+                    self.results_text.insert(tk.END, f"  Status: Traffic Flowing Normally\n", "normal")
+                self.results_text.insert(tk.END, "-" * 40 + "\n")  # Separator line
+            else:
+                self.results_text.insert(tk.END, f"Highway: {highway}\n", "highway")
+                self.results_text.insert(tk.END, "  Status: Failed to retrieve traffic flow information\n", "error")
+                self.results_text.insert(tk.END, "-" * 40 + "\n")
