@@ -1,40 +1,48 @@
-import http.client  #Calling in http.client from python
-import json     #Calling in json from python
+import http.client
+import json
 
-# API Key for TomTOm
+# API Key for TomTom
 api_key = 'vIWAkgxeRxGm3GsoHEdyv95p4Tf1qkc5'
 
-# This is the cordinates of Last Mile, the imputed coordinates will be automatically compared to this
-origin = '39.1517,-84.4675'
+# List of major highways with coordinates (latitude, longitude) in Cincinnati, Newport, and Northern Kentucky
+highways = {
+    'I-71': '39.1072,-84.5045',
+    'I-74': '39.1310,-84.5477',
+    'I-75': '39.0736,-84.5323',
+    'I-275': '39.0663,-84.3748',
+    'US-50': '39.0920,-84.5200',
+    'OH-126': '39.2290,-84.3950',
+    'I-471': '39.0911,-84.4960',  # Connects Cincinnati to Newport
+    'KY-8': '39.0920,-84.4950',   # Runs along the Ohio River in Northern Kentucky
+    'KY-18': '39.0462,-84.6632',  # Leads towards CVG Airport
+    'KY-237': '39.0481,-84.6700'  # Leads towards CVG Airport
+}
 
-# Function to get traffic information
-def get_traffic_info(origin, destination):    #Defines get_traffic_info and takes the origin and destination coordinates as perameters
-    conn = http.client.HTTPSConnection("api.tomtom.com")  #Connects to TomTom servers
-    url = f"/routing/1/calculateRoute/{origin}:{destination}/json?key={api_key}&routeType=fastest"     #Request URL
-    conn.request("GET", url)    #Send GET request
-    response = conn.getresponse()    #Gets the GET request
-    if response.status == 200:   #If 200 then it is 200 ok
+# Function to get traffic flow information
+def get_traffic_flow(point):
+    conn = http.client.HTTPSConnection("api.tomtom.com")
+    url = f"/traffic/services/4/flowSegmentData/absolute/10/json?key={api_key}&point={point}"
+    conn.request("GET", url)
+    response = conn.getresponse()
+    if response.status == 200:
         data = response.read()
         return json.loads(data)
     else:
-        return None       #If not 200 returns none
+        return None
 
-# Asks the user to imput coordinates to get the traffic information
-destination = input("Enter the destination coordinates, example (39.2022,-84.3772): ").strip()
-
-# Gets the traffic information from TomTom based on the imputted destination coordinates
-traffic_info = get_traffic_info(origin, destination)
-
-# Prints the collected traffic information
-if traffic_info:
-    print("Current Traffic Information for Cincinnati:")   #If traffic information is collected it will print this out
-    for route in traffic_info.get('routes', []):   #Gets routs
-        summary = route.get('summary', {})    #Collects summary of the routs
-        travel_time = summary.get('travelTimeInSeconds', 0)     #Gets the travel time in seconds
-        traffic_delay = summary.get('trafficDelayInSeconds', 0)   #Gets the traffic delay in seconds
-        if traffic_delay > 0:   #Determines if there is a traffic delay or not
-            print(f"Traffic is moving slow. Travel time: {travel_time // 60} minutes, Delay: {traffic_delay // 60} minutes.")   #If there is a traffic delay this will be printed to the user
+# Check traffic flow for each highway
+print("Traffic Information for Major Highways in Cincinnati, Newport, and Northern Kentucky:")
+for highway, point in highways.items():
+    traffic_flow = get_traffic_flow(point)
+    
+    if traffic_flow:
+        flow_data = traffic_flow.get("flowSegmentData", {})
+        current_speed = flow_data.get("currentSpeed", 0)
+        free_flow_speed = flow_data.get("freeFlowSpeed", 0)
+        delay = current_speed < free_flow_speed
+        if delay:
+            print(f"{highway}: Traffic delay detected. Current speed is {current_speed} mph, which is below the free-flow speed of {free_flow_speed} mph.")
         else:
-            print(f"Traffic is moving fast. Travel time: {travel_time // 60} minutes, No delay.")   #If no traffic delay this will be printed
-else:
-    print("Failed to retrieve traffic information.")    #This is printed out if traffic data could not be collected
+            print(f"{highway}: No delay, traffic is flowing normally.")
+    else:
+        print(f"{highway}: Failed to retrieve traffic flow information.")
