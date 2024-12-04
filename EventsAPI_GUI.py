@@ -33,7 +33,7 @@ class EventsFrame(tk.Frame):
         params = {
             "api_key": "586a053c502c92937cf5f8f5d0fefa0429293bb2fed4686eece16d476774eabd",
             "engine": "google_events",
-            "q": "Upcoming Major sporting events in Cincinnati, Ohio From November",
+            "q": "Major sporting events in Cincinnati Ohio",
             "hl": "en",
             "gl": "us"
         }
