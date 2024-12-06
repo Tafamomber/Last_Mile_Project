@@ -112,4 +112,3 @@ if __name__ == "__main__":
     traffic_frame = TrafficFrame(root)
     traffic_frame.pack(pady=20, padx=20)
     root.mainloop()
-    
