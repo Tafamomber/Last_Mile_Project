@@ -6,8 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 
 # Load your data
-file_path = "/Users/rufarotafamombe/Desktop/Projects/RatioPredict.xlsx"
-df = pd.read_excel(file_path)
+df = pd.read_csv("C:/Users/toghi/OneDrive/Desktop/Condensed Last Mile Excel.csv")
 
 # Convert 'rescue_date' to datetime format and extract day of the week
 df['rescue_date'] = pd.to_datetime(df['rescue_date'])
@@ -53,12 +52,6 @@ y_pred = model.predict(X_test_scaled)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-# Display results in a user-friendly format
-print("=== Model Evaluation Results ===")
-print(f"Mean Squared Error (MSE): {mse:.4f}")
-print(f"R-squared Score (R²): {r2:.4f}")
-print("\\nThe MSE gives the average squared error, where lower values indicate better accuracy.")
-print("The R-squared score shows how well the model explains the variance in the data. Values closer to 1 mean a better fit.\\n")
 
 # Predict for today's date or any specified date
 prediction_date = datetime.now()  # Use the current date and time
@@ -79,14 +72,12 @@ new_data_df = new_data_df.reindex(columns=X_train.columns, fill_value=0)
 new_data_scaled = scaler.transform(new_data_df)
 predicted_ratio = model.predict(new_data_scaled)
 
-print("=== Prediction for New Data ===")
-print(f"For {day_of_week}, {prediction_date.strftime('%B %d, %Y')}, with 105 required pickups, the predicted completion ratio is:")
+print("=== Projected completion percentage of orders ===")
+print(f"For {day_of_week}, {prediction_date.strftime('%B %d, %Y')},the predicted completion ratio for orders today is:")
 print(f"{predicted_ratio[0]:.2f} (out of 1.0)")
 
-print("\\nThis ratio represents the model's estimate of the likelihood that pickups will be completed for this day.")
-
 # Adding volunteer prediction based on provided statistics
-volunteer_stats = {
+orders_stats = {
     "Monday": (77, 82),
     "Tuesday": (72, 81),
     "Wednesday": (64, 73),
@@ -96,10 +87,13 @@ volunteer_stats = {
     "Sunday": (1, 4)
 }
 
-# Predict volunteer availability for the specified day
-predicted_volunteers = volunteer_stats.get(day_of_week, (0, 0))  # Default to (0, 0) if day not found
-print("=== Volunteer Availability Prediction ===")
-print(f"For {day_of_week}, {prediction_date.strftime('%B %d, %Y')}, the predicted volunteer range is:")
-print(f"{predicted_volunteers[0]} to {predicted_volunteers[1]} volunteers")
-print("\\nThis range is based on historical data provided in the PDF.")
+# Predict orders for the specified day
+predicted_orders = orders_stats.get(day_of_week, (0, 0))  # Default to (0, 0) if day not found
+print("=== Orders Prediction ===")
+print(f"For {day_of_week}, {prediction_date.strftime('%B %d, %Y')}, the predicted order range is:")
+print(f"{predicted_orders[0]} to {predicted_orders[1]} orders")
+
+print("==== Expected Volunteers ====")
+print(f"For {day_of_week}, {prediction_date.strftime('%B %d, %Y')}, the expected amount of volunteers is: ")
+print(f"{predicted_orders[0]-15} to {predicted_orders[1]-15} volunteers")
 
