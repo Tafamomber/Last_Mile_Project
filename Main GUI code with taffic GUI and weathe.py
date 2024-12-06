@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 from PIL import Image, ImageTk
 from CrashReportsAPI import CrashReport
+import subprocess 
 
 class WeatherApp:
     def __init__(self, master):
@@ -57,6 +58,41 @@ class WeatherApp:
         # Update every minute
         self.master.after(60000, self.update_weather)
 
+class AiFinalFrame(tk.Frame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.configure(bg="white")
+        self.create_widgets()
+
+    def run_ai_final(self):
+        try:
+            result = subprocess.run(
+                ["python3", "aiFinal.py"],  # Ensure this path is correct
+                capture_output=True,
+                text=True,
+            )
+            return result.stdout.strip()  # Return the script's output
+        except Exception as e:
+            return f"Error running aiFinal.py: {e}"
+
+    def create_widgets(self):
+        output = self.run_ai_final()
+        if not output.strip():
+            output = "No output from aiFinal.py"
+
+        # Split output into lines and create labels for each line
+        output_lines = output.split('\n')
+        for line in output_lines:
+            label = ttk.Label(
+                self,
+                text=line,
+                anchor="w",
+                background="white",  # Match the background color
+                foreground="black",  # Set the text color to black
+                wraplength=300  # Wrap text to fit within the frame
+            )
+            label.pack(pady=2, padx=5, anchor="w")
+            
 def update_week_date_label(label):
     now = datetime.now()
     week_number = now.strftime("%U")  # ISO week number
@@ -115,10 +151,11 @@ traffic_frame.grid(row=1, column=0, sticky="nsew", padx=padding_val, pady=paddin
 traffic_api_interface = TrafficFrame(traffic_frame)  # Instantiate the traffic API interface
 traffic_api_interface.pack(fill=tk.BOTH, expand=True)
 
-active_users_frame = tk.Frame(root, relief="solid", bg="white", highlightbackground="white", highlightthickness=0, bd=3)
-active_users_frame.grid(row=1, column=1, sticky="nsew", padx=padding_val, pady=padding_val)
-active_users_label = tk.Label(active_users_frame, text="How many people expected to be active today", anchor="center", bg="white")
-active_users_label.pack(expand=True)
+active_users_container = tk.Frame(root, relief="solid", bg="white", highlightbackground="white", highlightthickness=0, bd=3)
+active_users_container.grid(row=1, column=1, sticky="nsew", padx=padding_val, pady=padding_val)
+active_users_label = tk.Label(active_users_container, text="Daily Prediction", anchor="center", bg="white")
+active_users_interface = AiFinalFrame(active_users_container)
+active_users_interface.pack(fill=tk.BOTH, expand=True)
 
 crash_report_frame = tk.Frame(root, relief="solid", bg="white", highlightbackground="white", highlightthickness=0, bd=3)
 crash_report_frame.grid(row=1, column=2, sticky="nsew", padx=padding_val, pady=padding_val)
